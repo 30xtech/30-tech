@@ -253,6 +253,126 @@ footer{background:var(--surface);border-top:1px solid var(--border);padding:56px
 .ticker-track{will-change:transform;}
 section{content-visibility:auto;contain-intrinsic-size:0 500px;}
 #hero{content-visibility:visible;}
+
+/* ═══════════════════════════════════════════════
+   PRIVATE DASHBOARD - password gated
+═══════════════════════════════════════════════ */
+#dash-lock{position:fixed;inset:0;z-index:9999;background:#04070d;
+  display:none;align-items:center;justify-content:center;flex-direction:column;}
+.lock-box{background:var(--card);border:1px solid var(--border2);
+  padding:48px 40px;max-width:380px;width:90%;position:relative;text-align:center;}
+.lock-box::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;
+  background:linear-gradient(90deg,var(--gold),var(--cyan));}
+.lock-eye{font-size:12px;letter-spacing:4px;font-family:'IBM Plex Mono',monospace;
+  color:var(--gold);text-transform:uppercase;margin-bottom:20px;}
+.lock-title{font-family:'Syne','Arial Black',sans-serif;font-weight:800;font-size:28px;
+  color:var(--white);margin-bottom:8px;}
+.lock-sub{font-size:12px;color:var(--grey);margin-bottom:28px;line-height:1.6;}
+.lock-input{width:100%;background:var(--bg);border:1px solid var(--border2);
+  color:var(--white);font-family:'IBM Plex Mono',monospace;font-size:18px;
+  letter-spacing:6px;text-align:center;padding:14px 16px;outline:none;
+  margin-bottom:12px;transition:border-color 0.2s;}
+.lock-input:focus{border-color:var(--gold);}
+.lock-input.err{border-color:var(--red);animation:shake 0.3s ease;}
+@keyframes shake{0%,100%{transform:none}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.lock-btn{width:100%;font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:2px;
+  text-transform:uppercase;background:var(--gold);color:#000;font-weight:600;
+  padding:14px;border:none;cursor:pointer;transition:all 0.2s;}
+.lock-btn:hover{background:var(--gold2);}
+.lock-err{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--red);
+  margin-top:10px;display:none;letter-spacing:1px;}
+#dash-page{display:none;min-height:100vh;background:var(--bg);padding:80px 24px 60px;}
+.dash-header{display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:32px;padding-bottom:20px;border-bottom:1px solid var(--border);flex-wrap:wrap;gap:12px;}
+.dash-title{font-family:'Syne','Arial Black',sans-serif;font-weight:800;font-size:28px;color:var(--white);}
+.dash-title em{color:var(--gold);font-style:normal;}
+.dash-badge{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:2px;
+  text-transform:uppercase;display:flex;align-items:center;gap:8px;
+  color:var(--gold);border:1px solid rgba(240,192,64,0.3);padding:6px 14px;}
+.dash-logout{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:2px;
+  text-transform:uppercase;background:none;border:1px solid var(--border2);
+  color:var(--grey);cursor:pointer;padding:8px 14px;transition:all 0.2s;}
+.dash-logout:hover{border-color:var(--red);color:var(--red);}
+.dash-status{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
+  gap:2px;background:var(--border);margin-bottom:28px;}
+.stat-box{background:var(--surface);padding:20px 18px;}
+.stat-lbl{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:2px;
+  text-transform:uppercase;color:var(--grey);margin-bottom:6px;}
+.stat-val{font-family:'Syne','Arial Black',sans-serif;font-weight:800;font-size:22px;color:var(--white);}
+.stat-val.g{color:var(--green);}
+.stat-val.y{color:var(--gold);}
+.stat-val.r{color:var(--red);}
+.dash-grid{display:grid;grid-template-columns:1fr 360px;gap:20px;align-items:start;}
+@media(max-width:900px){.dash-grid{grid-template-columns:1fr;}}
+.feed-head{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:3px;
+  text-transform:uppercase;color:var(--gold);margin-bottom:14px;
+  display:flex;align-items:center;gap:8px;}
+.feed-head::before{content:'●';color:var(--green);animation:blink 1.4s infinite;}
+#signal-feed{display:flex;flex-direction:column;gap:10px;max-height:700px;overflow-y:auto;
+  scrollbar-width:thin;scrollbar-color:var(--border2) transparent;}
+#signal-feed::-webkit-scrollbar{width:4px;}
+#signal-feed::-webkit-scrollbar-thumb{background:var(--border2);}
+.feed-card{background:var(--card);border:1px solid var(--border);padding:18px 20px;
+  position:relative;font-family:'IBM Plex Mono',monospace;transition:border-color 0.2s;}
+.feed-card:hover{border-color:var(--border2);}
+.feed-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,var(--gold),var(--cyan));}
+.feed-card.buy-card::before{background:linear-gradient(90deg,var(--green),var(--cyan));}
+.feed-card.sell-card::before{background:linear-gradient(90deg,var(--red),#ff8c00);}
+.feed-card.closed-card{opacity:0.65;}
+.fc-top{display:flex;justify-content:space-between;align-items:flex-start;
+  margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--border);}
+.fc-sym{font-family:'Syne','Arial Black',sans-serif;font-weight:800;font-size:18px;color:var(--white);}
+.fc-meta{font-size:9px;color:var(--grey);letter-spacing:1px;margin-top:3px;}
+.fc-dir{font-size:10px;font-weight:600;padding:5px 10px;}
+.fc-dir.buy{color:var(--green);background:rgba(0,232,122,0.1);border:1px solid rgba(0,232,122,0.3);}
+.fc-dir.sell{color:var(--red);background:rgba(255,69,96,0.1);border:1px solid rgba(255,69,96,0.3);}
+.fc-dir.closed{color:var(--grey);background:rgba(74,102,128,0.1);border:1px solid var(--border);}
+.fc-rows{display:grid;grid-template-columns:1fr 1fr;gap:4px 16px;}
+.fc-row{display:flex;justify-content:space-between;padding:4px 0;font-size:10px;
+  border-bottom:1px solid rgba(19,32,48,0.6);}
+.fc-row:last-child{border:none;}
+.fk{color:var(--grey);letter-spacing:1px;}
+.fv{color:var(--white);}
+.fv.g{color:var(--green);}
+.fv.r{color:var(--red);}
+.fv.y{color:var(--gold);}
+.fc-foot{margin-top:10px;padding-top:8px;border-top:1px solid var(--border);
+  font-size:9px;color:var(--grey);letter-spacing:1px;display:flex;justify-content:space-between;}
+.pos-panel{background:var(--surface);border:1px solid var(--border);padding:20px;margin-bottom:16px;}
+.pos-head{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:3px;
+  text-transform:uppercase;color:var(--cyan);margin-bottom:14px;
+  display:flex;align-items:center;justify-content:space-between;}
+.pos-card{background:var(--card);border:1px solid var(--border);padding:14px 16px;
+  margin-bottom:8px;position:relative;}
+.pos-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;}
+.pos-card.long::before{background:var(--green);}
+.pos-card.short::before{background:var(--red);}
+.pc-sym{font-family:'Syne','Arial Black',sans-serif;font-weight:800;font-size:15px;color:var(--white);margin-bottom:6px;}
+.pc-row{display:flex;justify-content:space-between;font-size:10px;font-family:'IBM Plex Mono',monospace;padding:2px 0;}
+.pc-k{color:var(--grey);}
+.pc-v{color:var(--white);}
+.pc-v.g{color:var(--green);}
+.pc-v.r{color:var(--red);}
+.pc-v.y{color:var(--gold);}
+.feed-loading{display:flex;align-items:center;justify-content:center;padding:48px;
+  color:var(--grey);font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:2px;gap:10px;}
+.spin{width:16px;height:16px;border:2px solid var(--border2);border-top-color:var(--gold);
+  border-radius:50%;animation:spin 0.8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg)}}
+.feed-empty{padding:32px;text-align:center;font-family:'IBM Plex Mono',monospace;
+  font-size:11px;color:var(--grey);letter-spacing:1px;border:1px dashed var(--border);}
+.setup-panel{background:var(--surface);border:1px solid var(--border);padding:20px;}
+.setup-panel-head{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:3px;
+  text-transform:uppercase;color:var(--gold);margin-bottom:14px;}
+.setup-note{padding:16px;font-family:'IBM Plex Mono',monospace;font-size:10px;
+  color:var(--grey);line-height:1.9;border:1px dashed var(--border2);
+  background:rgba(240,192,64,0.02);}
+.setup-note strong{color:var(--gold);}
+.setup-note code{display:block;background:var(--bg);border:1px solid var(--border);
+  padding:10px;margin:8px 0;font-size:9px;color:var(--cyan);
+  letter-spacing:0.5px;line-height:1.7;white-space:pre-wrap;word-break:break-all;}
+
 </style>
 </head>
 <body>
@@ -266,8 +386,9 @@ section{content-visibility:auto;contain-intrinsic-size:0 500px;}
     <a href="#signal-sample">Signals</a>
     <a href="#jobs">Book Analyst</a>
     <a href="#how">How It Works</a>
+    <a href="#" onclick="showDashLock();return false;" style="color:var(--cyan);">⚡ Dashboard</a>
   </div>
-  <a href="mailto:Thirtyxtechresearch&#64;gmail.com" class="nav-email">Thirtyxtechresearch&#64;gmail.com</a>
+  <a href="/cdn-cgi/l/email-protection#24704c4d56505d5c5041474c564157414556474c020712101f4349454d480a474b49" class="nav-email">Thirtyxtechresearch&#64;gmail.com</a>
   <button id="hamburger" aria-label="Menu">&#9776;</button>
 </nav>
 <div id="mobile-menu" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;z-index:999;background:#04070d;flex-direction:column;padding:80px 24px 40px;gap:0;overflow-y:auto;">
@@ -276,8 +397,9 @@ section{content-visibility:auto;contain-intrinsic-size:0 500px;}
   <a href="#signal-sample" onclick="closeMenu();" style="font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--grey);text-decoration:none;padding:13px 0;border-bottom:1px solid var(--border);">Signals</a>
   <a href="#jobs" onclick="closeMenu();" style="font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--grey);text-decoration:none;padding:13px 0;border-bottom:1px solid var(--border);">Book Analyst</a>
   <a href="#how" onclick="closeMenu();" style="font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--grey);text-decoration:none;padding:13px 0;border-bottom:1px solid var(--border);">How It Works</a>
+  <a href="#" onclick="closeMenu();showDashLock();return false;" style="font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--cyan);text-decoration:none;padding:13px 0;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;">⚡ Dashboard</a>
   <div style="padding:16px 0 8px;font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--gold);">Contact &amp; Follow</div>
-  <a href="mailto:Thirtyxtechresearch&#64;gmail.com" style="font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:1px;color:var(--grey);text-decoration:none;padding:10px 0;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;">&#9993; Thirtyxtechresearch&#64;gmail.com</a>
+  <a href="/cdn-cgi/l/email-protection#04506c6d76707d7c7061676c766177616576676c222732303f6369656d682a676b69" style="font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:1px;color:var(--grey);text-decoration:none;padding:10px 0;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;">&#9993; Thirtyxtechresearch&#64;gmail.com</a>
   <a href="https://x.com/utecryptoedu" target="_blank" style="font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:1px;color:var(--grey);text-decoration:none;padding:10px 0;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;">&#120143; @utecryptoedu</a>
   <a href="https://x.com/utestockedu" target="_blank" style="font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:1px;color:var(--grey);text-decoration:none;padding:10px 0;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;">&#120143; @utestockedu</a>
   <a href="https://youtube.com/@thirtyxtechresearch" target="_blank" style="font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:1px;color:var(--grey);text-decoration:none;padding:10px 0;display:flex;align-items:center;gap:10px;">&#9654; @thirtyxtechresearch</a>
@@ -296,7 +418,7 @@ section{content-visibility:auto;contain-intrinsic-size:0 500px;}
       <a href="#services" class="btn-gold">View Pricing</a>
       <a href="#jobs" class="btn-ghost">Book an Analyst</a>
     </div>
-    <div class="mobile-email" style="display:none;margin-top:16px;font-family:'IBM Plex Mono','Courier New',Courier,monospace;font-size:11px;color:var(--gold);">&#9993; <a href="mailto:Thirtyxtechresearch&#64;gmail.com" style="color:var(--gold);">Thirtyxtechresearch&#64;gmail.com</a></div>
+    <div class="mobile-email" style="display:none;margin-top:16px;font-family:'IBM Plex Mono','Courier New',Courier,monospace;font-size:11px;color:var(--gold);">&#9993; <a href="/cdn-cgi/l/email-protection#dd89b5b4afa9a4a5a9b8beb5afb8aeb8bcafbeb5fbfeebe9e6bab0bcb4b1f3beb2b0" style="color:var(--gold);">Thirtyxtechresearch&#64;gmail.com</a></div>
     <div class="hero-badges">
       <div><div class="badge-val">8<span class="u">+</span></div><div class="badge-lbl">Asset Classes</div></div>
       <div><div class="badge-val">24<span class="u">/7</span></div><div class="badge-lbl">Live Coverage</div></div>
@@ -543,7 +665,7 @@ section{content-visibility:auto;contain-intrinsic-size:0 500px;}
     <div>
       <div class="foot-h">Contact &amp; Follow</div>
       <ul class="foot-links">
-        <li><a href="mailto:Thirtyxtechresearch&#64;gmail.com">Thirtyxtechresearch&#64;gmail.com</a></li>
+        <li><a href="/cdn-cgi/l/email-protection#a9fdc1c0dbddd0d1ddcccac1dbccdaccc8dbcac18f8a9f9d92cec4c8c0c587cac6c4">Thirtyxtechresearch&#64;gmail.com</a></li>
         <li><a href="https://x.com/utecryptoedu" target="_blank">&#120143; @utecryptoedu</a></li>
         <li><a href="https://x.com/utestockedu" target="_blank">&#120143; @utestockedu</a></li>
         <li><a href="https://youtube.com/@thirtyxtechresearch?si=s1D3pIu55sR7XiP1" target="_blank">&#9654; @thirtyxtechresearch</a></li>
@@ -563,7 +685,7 @@ section{content-visibility:auto;contain-intrinsic-size:0 500px;}
   </div>
 </footer>
 
-<script>
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
 function closeMenu(){
   document.getElementById('mobile-menu').style.display='none';
   document.getElementById('hamburger').innerHTML='&#9776;';
@@ -596,14 +718,308 @@ window.addEventListener('resize', function(){
 });
 
 // Scroll reveals
+var revEls = document.querySelectorAll('.rev');
 if('IntersectionObserver' in window){
-  const obs = new IntersectionObserver((entries)=>{
-    entries.forEach(e=>{
+  var obs = new IntersectionObserver(function(entries){
+    entries.forEach(function(e){
       if(e.isIntersecting){ e.target.classList.add('vis'); obs.unobserve(e.target); }
     });
   },{threshold:0.08});
-  document.querySelectorAll('.rev').forEach(el=>obs.observe(el));
+  revEls.forEach(function(el){ obs.observe(el); });
 }
 </script>
+
+<!-- ═══════════════════════════════════════════════ -->
+<!-- PRIVATE DASHBOARD — owner only, password gated  -->
+<!-- ═══════════════════════════════════════════════ -->
+<div id="dash-lock">
+  <div class="lock-box">
+    <div class="lock-eye">// Private Access</div>
+    <div class="lock-title">30× DASHBOARD</div>
+    <p class="lock-sub">Bot signals &middot; Active positions &middot; Live feed<br>Owner access only.</p>
+    <input class="lock-input" id="lock-pin" type="password" maxlength="20" placeholder="Enter PIN" autocomplete="off">
+    <button class="lock-btn" id="lock-btn-el">UNLOCK</button>
+    <div class="lock-err" id="lock-err">&#9940; Incorrect PIN</div>
+  </div>
+</div>
+
+<div id="dash-page">
+  <div class="dash-header">
+    <div class="dash-title"><em>30&times;</em> BOT DASHBOARD</div>
+    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+      <div class="dash-badge"><span class="dot-live"></span>Live Bot Feed</div>
+      <span id="dash-lastupdate" style="font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--grey);">Connecting...</span>
+      <button class="dash-logout" id="dash-logout-btn">&#128274; LOCK</button>
+    </div>
+  </div>
+
+  <div class="dash-status">
+    <div class="stat-box">
+      <div class="stat-lbl">Open Positions</div>
+      <div class="stat-val y" id="stat-active">--</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-lbl">Signals Today</div>
+      <div class="stat-val" id="stat-today">--</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-lbl">Open P&amp;L</div>
+      <div class="stat-val" id="stat-pnl">--</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-lbl">Last Signal</div>
+      <div class="stat-val g" id="stat-lastsig" style="font-size:14px;">--</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-lbl">Bot Status</div>
+      <div class="stat-val g" id="stat-status" style="font-size:14px;">STANDBY</div>
+    </div>
+  </div>
+
+  <div class="dash-grid">
+    <div>
+      <div class="feed-head">Live Signal Feed</div>
+      <div id="signal-feed">
+        <div class="feed-loading"><div class="spin"></div>&nbsp;Connecting to bot&hellip;</div>
+      </div>
+    </div>
+    <div>
+      <div class="pos-panel">
+        <div class="pos-head">
+          <span>Active Positions</span>
+          <span id="pos-count" style="color:var(--gold);">0</span>
+        </div>
+        <div id="positions-list">
+          <div class="feed-empty" style="font-size:10px;">No open positions</div>
+        </div>
+      </div>
+      <div class="setup-panel">
+        <div class="setup-panel-head">// Firebase Setup</div>
+        <div class="setup-note">
+          <strong>1.</strong> Go to console.firebase.google.com &rarr; create project<br>
+          <strong>2.</strong> Realtime Database &rarr; create &rarr; test mode<br>
+          <strong>3.</strong> Copy your database URL, add to bot .env:<br>
+          <code>FIREBASE_URL=https://your-project-default-rtdb.firebaseio.com
+FIREBASE_SECRET=your_secret</code>
+          <strong>4.</strong> Add the bot snippet to your bot.py<br>
+          <strong>5.</strong> Replace <code>YOUR_FIREBASE_DB_URL</code> in the JS config at bottom of this file<br><br>
+          Once done, all signals push here automatically.
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<script>
+/* ══════════════════════════════════════════════════════
+   30× BOT PRIVATE DASHBOARD — owner-only, PIN gated
+   ══════════════════════════════════════════════════════
+   ⚠️ CONFIGURE THESE TWO VALUES BEFORE DEPLOYING:      */
+
+var DASH_PIN     = 'UTE30X2024';            // ← Change your PIN
+var FIREBASE_URL = 'YOUR_FIREBASE_DB_URL';  // ← Your Firebase Realtime DB URL
+/* ══════════════════════════════════════════════════════ */
+
+var _unlocked = false;
+var _pollTimer = null;
+var _cachedSignals = [];
+var _cachedPositions = {};
+
+// ── Lock / unlock ────────────────────────────────────────────
+function showDashLock(){
+  document.querySelectorAll('section,footer,.ticker-wrap').forEach(function(el){
+    el.style.display='none';
+  });
+  document.getElementById('dash-page').style.display='none';
+  document.getElementById('dash-lock').style.display='flex';
+  setTimeout(function(){ document.getElementById('lock-pin').focus(); },100);
+}
+
+function checkPin(){
+  var pin = document.getElementById('lock-pin').value.trim();
+  if(pin === DASH_PIN){
+    document.getElementById('dash-lock').style.display='none';
+    document.getElementById('dash-page').style.display='block';
+    _unlocked = true;
+    startDashboard();
+  } else {
+    var inp = document.getElementById('lock-pin');
+    inp.classList.add('err');
+    document.getElementById('lock-err').style.display='block';
+    setTimeout(function(){ inp.classList.remove('err'); },400);
+    inp.value=''; inp.focus();
+  }
+}
+
+function lockDash(){
+  _unlocked = false;
+  if(_pollTimer){ clearInterval(_pollTimer); _pollTimer=null; }
+  document.getElementById('dash-page').style.display='none';
+  document.querySelectorAll('section,footer,.ticker-wrap').forEach(function(el){
+    el.style.display='';
+  });
+  window.scrollTo(0,0);
+}
+
+// Wire up buttons after DOM ready
+document.addEventListener('DOMContentLoaded',function(){
+  document.getElementById('lock-pin').addEventListener('keydown',function(e){
+    if(e.key==='Enter') checkPin();
+  });
+  document.getElementById('lock-btn-el').addEventListener('click', checkPin);
+  document.getElementById('dash-logout-btn').addEventListener('click', lockDash);
+});
+
+// ── Firebase polling ─────────────────────────────────────────
+function startDashboard(){
+  if(!FIREBASE_URL || FIREBASE_URL === 'YOUR_FIREBASE_DB_URL'){
+    document.getElementById('signal-feed').innerHTML =
+      '<div class="feed-empty">&#9881; Firebase not configured yet.<br><br>Follow setup steps &rarr;</div>';
+    document.getElementById('stat-status').textContent='SETUP NEEDED';
+    document.getElementById('stat-status').style.color='var(--gold)';
+    document.getElementById('dash-lastupdate').textContent='Not connected';
+    return;
+  }
+  fetchData();
+  _pollTimer = setInterval(fetchData, 8000);
+}
+
+function fetchData(){
+  // Fetch last 50 signals ordered by timestamp
+  fetch(FIREBASE_URL + '/signals.json?orderBy=\"ts\"&limitToLast=50')
+    .then(function(r){ return r.json(); })
+    .then(function(data){
+      _cachedSignals = data ? Object.values(data).sort(function(a,b){return (b.ts||0)-(a.ts||0);}) : [];
+      renderFeed(_cachedSignals);
+      updateStats(_cachedSignals, _cachedPositions);
+      document.getElementById('dash-lastupdate').textContent =
+        'Updated ' + new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+      document.getElementById('stat-status').textContent='ONLINE';
+      document.getElementById('stat-status').style.color='var(--green)';
+    })
+    .catch(function(){
+      document.getElementById('stat-status').textContent='OFFLINE';
+      document.getElementById('stat-status').style.color='var(--red)';
+    });
+
+  // Fetch active positions
+  fetch(FIREBASE_URL + '/positions.json')
+    .then(function(r){ return r.json(); })
+    .then(function(data){
+      _cachedPositions = data || {};
+      renderPositions(_cachedPositions);
+      updateStats(_cachedSignals, _cachedPositions);
+    })
+    .catch(function(){});
+}
+
+// ── Render signal feed ────────────────────────────────────────
+function renderFeed(signals){
+  var feed = document.getElementById('signal-feed');
+  if(!signals || signals.length===0){
+    feed.innerHTML='<div class="feed-empty">No signals yet — bot will push here automatically.</div>';
+    return;
+  }
+  feed.innerHTML = signals.map(buildCard).join('');
+}
+
+function buildCard(s){
+  var dir = (s.direction||'').toUpperCase();
+  var isBuy    = dir==='BUY'  || dir==='LONG';
+  var isClosed = s.status==='CLOSED' || s.status==='closed';
+  var cardCls  = 'feed-card ' + (isClosed ? 'closed-card' : (isBuy ? 'buy-card' : 'sell-card'));
+  var dirCls   = 'fc-dir ' + (isClosed ? 'closed' : (isBuy ? 'buy' : 'sell'));
+  var dirLbl   = isClosed ? '&#9632; CLOSED' : (isBuy ? '&#9650; BUY' : '&#9660; SELL');
+  var ts   = s.ts   ? new Date(s.ts*1000).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}) : '--';
+  var date = s.ts   ? new Date(s.ts*1000).toLocaleDateString([],{month:'short',day:'numeric'})     : '';
+  var sym  = (s.symbol||'???').replace('USDT','');
+  var pnl  = (s.pnl!==undefined && isClosed)
+    ? '<span class="fc-pnl '+(parseFloat(s.pnl)>=0?'pos':'neg')+'">'
+      +(parseFloat(s.pnl)>=0?'+':'')+parseFloat(s.pnl).toFixed(2)+'%</span>' : '';
+  var ai   = s.ai_confirm
+    ? '<span style="color:var(--cyan);font-size:9px;">&#11041; AI: '+s.ai_confirm+'</span>' : '';
+  return '<div class="'+cardCls+'">'
+    +'<div class="fc-top">'
+      +'<div><div class="fc-sym">'+sym+'</div>'
+      +'<div class="fc-meta">'+(s.tf||'--')+' &middot; T'+(s.tier||'?')+' &middot; '+date+' '+ts+'</div></div>'
+      +'<div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">'
+      +'<div class="'+dirCls+'">'+dirLbl+'</div>'+pnl+'</div>'
+    +'</div>'
+    +'<div class="fc-rows">'
+      +'<div class="fc-row"><span class="fk">ENTRY</span><span class="fv y">'+fp(s.entry)+'</span></div>'
+      +'<div class="fc-row"><span class="fk">STOP</span><span class="fv r">'+fp(s.sl)+'</span></div>'
+      +'<div class="fc-row"><span class="fk">TP</span><span class="fv g">'+fp(s.tp)+'</span></div>'
+      +'<div class="fc-row"><span class="fk">RR</span><span class="fv g">'+(s.rr?'1:'+parseFloat(s.rr).toFixed(2):'--')+'</span></div>'
+      +(s.ema_signal?'<div class="fc-row"><span class="fk">EMA</span><span class="fv g">'+s.ema_signal+'</span></div>':'')
+      +(s.index_gate?'<div class="fc-row"><span class="fk">INDEX</span><span class="fv g">'+s.index_gate+'</span></div>':'')
+    +'</div>'
+    +'<div class="fc-foot"><span>'+(s.status?s.status.toUpperCase():'ACTIVE')+'</span>'+ai+'</div>'
+  +'</div>';
+}
+
+// ── Render positions ──────────────────────────────────────────
+function renderPositions(data){
+  var list  = document.getElementById('positions-list');
+  var count = document.getElementById('pos-count');
+  var keys  = Object.keys(data||{});
+  count.textContent = keys.length;
+  if(keys.length===0){
+    list.innerHTML='<div class="feed-empty" style="font-size:10px;">No open positions</div>';
+    return;
+  }
+  list.innerHTML = keys.map(function(k){
+    var p = data[k];
+    var isLong = (p.direction||'').toUpperCase()==='BUY'||(p.direction||'').toUpperCase()==='LONG';
+    var pnl = p.unrealised_pnl!==undefined
+      ? '<div class="pc-row"><span class="pc-k">P&L</span><span class="pc-v '
+        +(parseFloat(p.unrealised_pnl)>=0?'g':'r')+'"">'
+        +(parseFloat(p.unrealised_pnl)>=0?'+':'')+parseFloat(p.unrealised_pnl).toFixed(2)+'%</span></div>' : '';
+    return '<div class="pos-card '+(isLong?'long':'short')+'">'
+      +'<div class="pc-sym">'+(p.symbol||k).replace('USDT','')+'</div>'
+      +'<div class="pc-row"><span class="pc-k">Entry</span><span class="pc-v y">'+fp(p.entry)+'</span></div>'
+      +'<div class="pc-row"><span class="pc-k">SL</span><span class="pc-v r">'+fp(p.sl)+'</span></div>'
+      +'<div class="pc-row"><span class="pc-k">TP</span><span class="pc-v g">'+fp(p.tp)+'</span></div>'
+      +pnl
+      +'<div class="pc-row"><span class="pc-k">Tier</span><span class="pc-v">T'+(p.tier||'?')+' &middot; '+(p.tf||'--')+'</span></div>'
+    +'</div>';
+  }).join('');
+}
+
+// ── Stats ─────────────────────────────────────────────────────
+function updateStats(signals, positions){
+  var posCount = Object.keys(positions||{}).length;
+  document.getElementById('stat-active').textContent = posCount;
+  var now = Math.floor(Date.now()/1000);
+  var dayStart = now - (now % 86400);
+  document.getElementById('stat-today').textContent =
+    (signals||[]).filter(function(s){ return s.ts && s.ts >= dayStart; }).length;
+  if(signals && signals.length>0){
+    var last = signals[0];
+    document.getElementById('stat-lastsig').textContent =
+      (last.symbol||'?').replace('USDT','') + ' T' + (last.tier||'?');
+  }
+  var pnls = Object.values(positions||{}).map(function(p){
+    return parseFloat(p.unrealised_pnl||0);
+  }).filter(function(v){ return !isNaN(v); });
+  if(pnls.length>0){
+    var total = pnls.reduce(function(a,b){return a+b;},0);
+    var el = document.getElementById('stat-pnl');
+    el.textContent = (total>=0?'+':'')+total.toFixed(2)+'%';
+    el.className = 'stat-val '+(total>=0?'g':'r');
+  }
+}
+
+// ── Price formatter ───────────────────────────────────────────
+function fp(v){
+  if(v===undefined||v===null||v==='') return '--';
+  var n = parseFloat(v);
+  if(isNaN(n)) return String(v);
+  if(n>=1000)  return '$'+n.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+  if(n>=1)     return '$'+n.toFixed(4);
+  return '$'+n.toFixed(6);
+}
+</script>
+
 </body>
   </html>
