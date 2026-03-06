@@ -822,8 +822,8 @@ if('IntersectionObserver' in window){
           <code>FIREBASE_URL=https://your-project-default-rtdb.firebaseio.com
 FIREBASE_SECRET=your_secret</code>
           <strong>4.</strong> Add the bot snippet to your bot.py<br>
-          <strong>5.</strong> Replace <code>YOUR_FIREBASE_DB_URL</code> in the JS config at bottom of this file<br><br>
-          Once done, all signals push here automatically.
+          <strong>5.</strong> ✅ Firebase URL already configured in this file<br><br>
+          ✅ Firebase connected. Once you add the bot snippet, signals will appear here automatically.
         </div>
       </div>
     </div>
@@ -837,8 +837,9 @@ FIREBASE_SECRET=your_secret</code>
    ══════════════════════════════════════════════════════
    ⚠️ CONFIGURE THESE TWO VALUES BEFORE DEPLOYING:      */
 
-var DASH_PIN     = 'BAMI$2264';            // ← Change your PIN
-var FIREBASE_URL = 'YOUR_FIREBASE_DB_URL';  // ← Your Firebase Realtime DB URL
+var DASH_PIN     = 'UTE30X2024';
+var FIREBASE_URL = 'https://x-dashboard-b1098-default-rtdb.europe-west1.firebasedatabase.app';
+var FIREBASE_SECRET = 'HtSaOvwz7W9HzLzbnFcufeBZECKoez995SehKNKP';
 /* ══════════════════════════════════════════════════════ */
 
 var _unlocked = false;
@@ -907,7 +908,7 @@ function startDashboard(){
 
 function fetchData(){
   // Fetch last 50 signals ordered by timestamp
-  fetch(FIREBASE_URL + '/signals.json?orderBy=\"ts\"&limitToLast=50')
+  fetch(FIREBASE_URL + '/signals.json?orderBy=\"ts\"&limitToLast=50&auth=' + FIREBASE_SECRET)
     .then(function(r){ return r.json(); })
     .then(function(data){
       _cachedSignals = data ? Object.values(data).sort(function(a,b){return (b.ts||0)-(a.ts||0);}) : [];
@@ -924,7 +925,7 @@ function fetchData(){
     });
 
   // Fetch active positions
-  fetch(FIREBASE_URL + '/positions.json')
+  fetch(FIREBASE_URL + '/positions.json?auth=' + FIREBASE_SECRET)
     .then(function(r){ return r.json(); })
     .then(function(data){
       _cachedPositions = data || {};
