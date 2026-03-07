@@ -225,8 +225,11 @@ footer{background:var(--surface);border-top:1px solid var(--border);padding:56px
   .hero-badges{gap:12px;}
   .job-rate{font-size:28px;}
 }
-section{content-visibility:auto;contain-intrinsic-size:0 500px;}
-#hero{content-visibility:visible;}
+section{content-visibility:auto;contain-intrinsic-size:0 600px;}
+#hero{content-visibility:visible;contain-intrinsic-size:unset;}
+/* Ensure animated elements are always visible even if animation doesn't fire */
+.eyebrow,.hero-desc,.hero-actions,.hero-badges{opacity:1 !important;}
+h1{opacity:1 !important;}
 
 /* DASHBOARD */
 #dash-lock{position:fixed;inset:0;z-index:9999;background:#04070d;display:none;align-items:center;justify-content:center;flex-direction:column;padding:16px;overflow-y:auto;}
@@ -861,182 +864,171 @@ function fp(v){
 <script>
 (function(){
   /* ─────────────────────────────────────────────────────────────
-     LIVE TICKER — multi-API with fallback chain
-     APIs tried in order (all free, no key required):
-       1. CoinGecko  → crypto + metals (24h % change)
-       2. Binance WS → crypto prices (backup, real-time stream)
-       3. open.er-api → FX rates
-       4. If all APIs fail → graceful static fallback shown
-     Refreshes every 60 seconds.
+     LIVE TICKER — multi-source, all free, no API keys needed
+     Sources:
+       • Binance REST  → BTC, ETH, SOL (crypto, very reliable CORS)
+       • Yahoo Finance → XAU, XAG, GBP, EUR, AMZN, MSTR, COIN
+     Fallback: realistic static prices if all sources fail
+     Refreshes every 60s
   ──────────────────────────────────────────────────────────────── */
 
-  var COINS = [
-    {sym:'BTC/USD',  id:'bitcoin',  binance:'BTCUSDT'},
-    {sym:'ETH/USD',  id:'ethereum', binance:'ETHUSDT'},
-    {sym:'SOL/USD',  id:'solana',   binance:'SOLUSDT'},
-    {sym:'XAU/USD',  id:'pax-gold', binance:null},
-    {sym:'XAG/USD',  id:'silver',   binance:null},
+  // Binance tickers for crypto
+  var BINANCE_TICKERS = [
+    {sym:'BTC/USD',  b:'BTCUSDT'},
+    {sym:'ETH/USD',  b:'ETHUSDT'},
+    {sym:'SOL/USD',  b:'SOLUSDT'},
   ];
-  var STOCK_SYMS = ['AMZN','MSTR','COIN'];
 
-  // Static fallback values shown if ALL APIs fail
-  var STATIC_FALLBACK = [
-    {sym:'BTC/USD', price:84200,   chg:1.2},
-    {sym:'ETH/USD', price:1820,    chg:-0.5},
-    {sym:'SOL/USD', price:132,     chg:2.1},
-    {sym:'XAU/USD', price:3050,    chg:0.4},
-    {sym:'XAG/USD', price:33.8,    chg:0.7},
-    {sym:'GBP/USD', price:1.2940,  chg:0.1},
-    {sym:'EUR/USD', price:1.0830,  chg:-0.2},
-    {sym:'AMZN',    price:198.5,   chg:-0.8},
+  // Yahoo Finance symbols for everything else
+  // GC=F = Gold futures, SI=F = Silver futures, GBPUSD=X, EURUSD=X
+  var YAHOO_TICKERS = [
+    {sym:'XAU/USD', y:'GC=F'},
+    {sym:'XAG/USD', y:'SI=F'},
+    {sym:'GBP/USD', y:'GBPUSD=X'},
+    {sym:'EUR/USD', y:'EURUSD=X'},
+    {sym:'AMZN',    y:'AMZN'},
+    {sym:'MSTR',    y:'MSTR'},
+    {sym:'COIN',    y:'COIN'},
   ];
+
+  // Shown if all APIs fail
+  var STATIC_FALLBACK = [
+    {sym:'BTC/USD', price:84200,  chg:1.2},
+    {sym:'ETH/USD', price:1820,   chg:-0.5},
+    {sym:'SOL/USD', price:132,    chg:2.1},
+    {sym:'XAU/USD', price:3050,   chg:0.4},
+    {sym:'XAG/USD', price:33.8,   chg:0.7},
+    {sym:'GBP/USD', price:1.2940, chg:0.1},
+    {sym:'EUR/USD', price:1.0830, chg:-0.2},
+    {sym:'AMZN',    price:198.5,  chg:-0.8},
+  ];
+
+  // Desired display order
+  var ORDER = ['BTC/USD','ETH/USD','SOL/USD','XAU/USD','XAG/USD',
+               'GBP/USD','EUR/USD','AMZN','MSTR','COIN'];
 
   var tickerData = {};
-  var cryptoLoaded = false;
-  var fxLoaded = false;
 
-  // ── Helpers ────────────────────────────────────────────────────
   function arrow(c){ return c >= 0 ? '&#9650;' : '&#9660;'; }
-  function cls(c){   return c >= 0 ? 't-up' : 't-dn'; }
+  function cls(c)  { return c >= 0 ? 't-up' : 't-dn'; }
   function fmtPct(c){ return (c >= 0 ? '+' : '') + c.toFixed(2) + '%'; }
   function fmtPrice(p){
     if(p >= 1000) return '$' + p.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+    if(p >= 10)   return '$' + p.toFixed(2);
     if(p >= 1)    return '$' + p.toFixed(4);
-    return '$' + p.toFixed(6);
+    return '$' + p.toFixed(4);
   }
 
   function buildTickerHTML(){
-    var items = Object.values(tickerData);
+    // render in defined order, skip missing
+    var items = ORDER.map(function(s){ return tickerData[s]; }).filter(Boolean);
     if(!items.length) return;
-    var sep = '<span style="color:var(--border);margin:0 4px">&#183;</span>';
+    var sep = '<span style="color:var(--border);margin:0 6px">&#183;</span>';
     var single = items.map(function(d){
       return '<div class="t-item">'
         +'<span class="t-sym">'+d.sym+'</span>'
         +'<span class="'+cls(d.chg)+'">'+arrow(d.chg)+' '+fmtPrice(d.price)+'</span>'
-        +'<span class="'+cls(d.chg)+'" style="font-size:9px;opacity:0.8;">'
+        +'<span class="'+cls(d.chg)+'" style="font-size:9px;opacity:0.75;margin-left:2px;">'
           +fmtPct(d.chg)+'</span>'
         +'</div>';
     }).join(sep);
     var track = document.getElementById('ticker-track');
-    if(track) track.innerHTML = single + sep + single; // doubled for seamless loop
+    if(track) track.innerHTML = single + sep + single;
+  }
+
+  // ── Binance: bulk fetch all crypto in one call ─────────────────
+  function fetchBinance(){
+    var symbols = JSON.stringify(BINANCE_TICKERS.map(function(t){return t.b;}));
+    fetch('https://api.binance.com/api/v3/ticker/24hr?symbols='+encodeURIComponent(symbols))
+      .then(function(r){ return r.json(); })
+      .then(function(arr){
+        if(!Array.isArray(arr)) return;
+        arr.forEach(function(d){
+          var t = BINANCE_TICKERS.find(function(x){ return x.b === d.symbol; });
+          if(t && d.lastPrice){
+            tickerData[t.sym] = {
+              sym:   t.sym,
+              price: parseFloat(d.lastPrice),
+              chg:   parseFloat(d.priceChangePercent) || 0
+            };
+          }
+        });
+        buildTickerHTML();
+      })
+      .catch(function(){ fetchBinanceFallback(); });
+  }
+
+  // Individual Binance calls if bulk fails
+  function fetchBinanceFallback(){
+    BINANCE_TICKERS.forEach(function(t){
+      fetch('https://api.binance.com/api/v3/ticker/24hr?symbol='+t.b)
+        .then(function(r){ return r.json(); })
+        .then(function(d){
+          if(d.lastPrice){
+            tickerData[t.sym] = {sym:t.sym, price:parseFloat(d.lastPrice), chg:parseFloat(d.priceChangePercent)||0};
+            buildTickerHTML();
+          }
+        }).catch(function(){});
+    });
+  }
+
+  // ── Yahoo Finance: metals, FX, stocks ─────────────────────────
+  function fetchYahoo(t){
+    var url = 'https://query1.finance.yahoo.com/v8/finance/chart/'
+            + encodeURIComponent(t.y) + '?interval=1d&range=2d';
+    fetch(url)
+      .then(function(r){ return r.json(); })
+      .then(function(data){
+        var result = data && data.chart && data.chart.result && data.chart.result[0];
+        if(!result) return;
+        var meta  = result.meta;
+        var price = parseFloat(meta.regularMarketPrice) || 0;
+        var prev  = parseFloat(meta.chartPreviousClose || meta.previousClose || price);
+        var chg   = (prev && price) ? ((price - prev) / prev * 100) : 0;
+        if(price > 0){
+          tickerData[t.sym] = {sym:t.sym, price:price, chg:chg};
+          buildTickerHTML();
+        }
+      })
+      .catch(function(){
+        // Try query2 as backup
+        var url2 = 'https://query2.finance.yahoo.com/v8/finance/chart/'
+                 + encodeURIComponent(t.y) + '?interval=1d&range=2d';
+        fetch(url2)
+          .then(function(r){ return r.json(); })
+          .then(function(data){
+            var result = data && data.chart && data.chart.result && data.chart.result[0];
+            if(!result) return;
+            var meta  = result.meta;
+            var price = parseFloat(meta.regularMarketPrice) || 0;
+            var prev  = parseFloat(meta.chartPreviousClose || meta.previousClose || price);
+            var chg   = (prev && price) ? ((price - prev) / prev * 100) : 0;
+            if(price > 0){
+              tickerData[t.sym] = {sym:t.sym, price:price, chg:chg};
+              buildTickerHTML();
+            }
+          }).catch(function(){});
+      });
   }
 
   function setFallback(){
-    // Only use fallback if nothing loaded yet
     if(Object.keys(tickerData).length === 0){
       STATIC_FALLBACK.forEach(function(d){ tickerData[d.sym] = d; });
       buildTickerHTML();
     }
   }
 
-  // ── 1. CoinGecko API ───────────────────────────────────────────
-  function fetchCoinGecko(){
-    var ids = COINS.map(function(c){return c.id;}).join(',');
-    var url = 'https://api.coingecko.com/api/v3/simple/price'
-            + '?ids='+ids+'&vs_currencies=usd&include_24hr_change=true';
-    return fetch(url, {mode:'cors'})
-      .then(function(r){
-        if(!r.ok) throw new Error('CoinGecko HTTP '+r.status);
-        return r.json();
-      })
-      .then(function(data){
-        var got = false;
-        COINS.forEach(function(c){
-          var d = data[c.id];
-          if(d && d.usd){
-            tickerData[c.sym] = {sym:c.sym, price:d.usd, chg:d.usd_24h_change||0};
-            got = true;
-          }
-        });
-        if(got){ cryptoLoaded = true; buildTickerHTML(); }
-        return got;
-      });
-  }
-
-  // ── 2. Binance REST fallback for crypto (very permissive CORS) ─
-  function fetchBinance(){
-    var syms = COINS.filter(function(c){return c.binance;});
-    var promises = syms.map(function(c){
-      return fetch('https://api.binance.com/api/v3/ticker/24hr?symbol='+c.binance)
-        .then(function(r){ return r.json(); })
-        .then(function(d){
-          if(d.lastPrice){
-            tickerData[c.sym] = {
-              sym:   c.sym,
-              price: parseFloat(d.lastPrice),
-              chg:   parseFloat(d.priceChangePercent)||0
-            };
-          }
-        })
-        .catch(function(){});
-    });
-    return Promise.all(promises).then(function(){
-      if(Object.keys(tickerData).length){ cryptoLoaded = true; buildTickerHTML(); }
-    });
-  }
-
-  // ── 3. FX via open.er-api ──────────────────────────────────────
-  function fetchFX(){
-    return fetch('https://open.er-api.com/v6/latest/USD', {mode:'cors'})
-      .then(function(r){
-        if(!r.ok) throw new Error('ER-API HTTP '+r.status);
-        return r.json();
-      })
-      .then(function(data){
-        if(!data.rates) return;
-        var gbp = data.rates['GBP'] ? (1/data.rates['GBP']) : null;
-        var eur = data.rates['EUR'] ? (1/data.rates['EUR']) : null;
-        if(gbp) tickerData['GBP/USD'] = {sym:'GBP/USD', price:gbp, chg:0};
-        if(eur) tickerData['EUR/USD'] = {sym:'EUR/USD', price:eur, chg:0};
-        fxLoaded = true;
-        buildTickerHTML();
-      });
-  }
-
-  // ── 4. Stocks via Yahoo Finance ────────────────────────────────
-  function fetchStock(sym){
-    var url = 'https://query1.finance.yahoo.com/v8/finance/chart/'+sym
-            + '?interval=1d&range=2d';
-    fetch(url, {mode:'cors'})
-      .then(function(r){ return r.json(); })
-      .then(function(data){
-        var meta = data && data.chart && data.chart.result
-                && data.chart.result[0] && data.chart.result[0].meta;
-        if(!meta) return;
-        var price = parseFloat(meta.regularMarketPrice) || 0;
-        var prev  = parseFloat(meta.chartPreviousClose||meta.previousClose||price);
-        var chg   = prev ? ((price-prev)/prev*100) : 0;
-        if(price){ tickerData[sym] = {sym:sym, price:price, chg:chg}; buildTickerHTML(); }
-      })
-      .catch(function(){});
-  }
-
-  // ── Main fetch chain ───────────────────────────────────────────
   function fetchAll(){
-    // Try CoinGecko first; if it fails try Binance
-    fetchCoinGecko()
-      .catch(function(){
-        return fetchBinance();
-      })
-      .catch(function(){
-        setFallback(); // last resort
-      });
-
-    fetchFX().catch(function(){
-      // FX fallback already in STATIC_FALLBACK via setFallback
-    });
-
-    STOCK_SYMS.forEach(fetchStock);
-
-    // If nothing has loaded after 5s, show static fallback
+    fetchBinance();
+    YAHOO_TICKERS.forEach(fetchYahoo);
+    // Show fallback after 6s if nothing loaded
     setTimeout(function(){
       if(Object.keys(tickerData).length === 0) setFallback();
-    }, 5000);
+    }, 6000);
   }
 
-  // Start on DOM ready
   if(document.readyState === 'loading'){
-    document.addEventListener('DOMContentLoaded', function(){ fetchAll(); setInterval(fetchAll,60000); });
+    document.addEventListener('DOMContentLoaded', function(){ fetchAll(); setInterval(fetchAll, 60000); });
   } else {
     fetchAll();
     setInterval(fetchAll, 60000);
